@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import tasksRouter from "./routes/tasks";
+import userRouter from "./routes/users";
 import * as dotenv from "dotenv";
 import { myDataSource } from "./ormconfig";
 const { errorHandler } = require("./middleware/errorMiddleware");
@@ -22,10 +23,15 @@ myDataSource
     console.error("Error during Data Source initialization:", err);
   });
 
-// Routes and Middleware
+// Middleware
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// Routes
 app.use("/api/tasks", tasksRouter);
+app.use("/api/users", userRouter);
+
+// Error Handler
 app.use(errorHandler);
 
 app.listen(port, () => {

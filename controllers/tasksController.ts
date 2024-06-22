@@ -3,13 +3,14 @@ import { Task } from "../models/task.entity";
 import { myDataSource } from "../ormconfig";
 const taskRepository = myDataSource.getRepository(Task);
 
-interface taskBodyData {
+interface TaskBodyData {
   title: string;
   description: string;
   isPinned?: boolean;
+  user: string;
 }
 
-interface taskUpdateDate {
+interface TaskUpdateDate {
   title?: string;
   description?: string;
   isPinned?: boolean;
@@ -18,7 +19,6 @@ interface taskUpdateDate {
 }
 
 const fetchTasks = async (req: Request, res: Response, next: NextFunction) => {
-  console.log();
   try {
     const tasks = await taskRepository.find();
     res
@@ -57,12 +57,12 @@ const fetchTaskById = async (
 
 const createTask = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data: taskBodyData = req.body;
-    if (!data.title || !data.description) {
+    const data: TaskBodyData = req.body;
+    if (!data.title || !data.description || !data.user) {
       res.status(400);
       next(
         new Error(
-          "One or more of following fields are missings: [title, description]"
+          "One or more of following fields are missings: [title, description, user]"
         )
       );
     }
@@ -74,6 +74,7 @@ const createTask = async (req: Request, res: Response, next: NextFunction) => {
     task.description = data.description;
     task.title = data.title;
     task.isPinned = data.isPinned ? data.isPinned : false;
+    task.userId = Number(data.user);
 
     await taskRepository.save(task);
 
@@ -116,7 +117,7 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     next(new Error("Invalid task ID provided."));
   }
 
-  const taskData: taskUpdateDate = req.body;
+  const taskData: TaskUpdateDate = req.body;
 
   try {
     const task = await taskRepository.findOneBy({ id: convertedId });
