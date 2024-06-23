@@ -14,7 +14,12 @@ interface NewUserData {
   password: string;
 }
 
-const RegisterUser = async (
+interface LoginUserData {
+  email: string;
+  password: string;
+}
+
+const registerUser = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -25,7 +30,7 @@ const RegisterUser = async (
     res.status(400);
     next(
       new Error(
-        "One or more of the required fieleds [name, email, password] are missing."
+        "One or more of the required fields [name, email, password] are missing."
       )
     );
     return;
@@ -82,4 +87,65 @@ const RegisterUser = async (
   }
 };
 
-export { RegisterUser };
+const loginUser = async (req: Request, res: Response, next: NextFunction) => {
+  const credentials: LoginUserData = req.body;
+
+  if (!credentials.email) {
+    res.status(400);
+    next(new Error("Email address is required."));
+    return;
+  }
+
+  if (!isEmailValid(credentials.email)) {
+    res.status(400);
+    next(new Error("Invalid email."));
+    return;
+  }
+
+  if (!credentials.password) {
+    res.status(400);
+    next(new Error("Password is required."));
+    return;
+  }
+
+  if (credentials.password.length < 7) {
+    res.status(400);
+    next(new Error("Password is too short."));
+    return;
+  }
+
+  try {
+    const user = await userRepository.findOneBy({ email: credentials.email });
+
+    if (!user) {
+      res.status(404);
+      next(new Error("Could not find user with provided email."));
+      return;
+    }
+
+    const isPasswordValid = bcrypt.compareSync(
+      credentials.password,
+      user.password
+    );
+
+    if (!isPasswordValid) {
+      res.status(400);
+      next(new Error("Invalid password!"));
+      return;
+    }
+
+    res.status(201).json({
+      message: "success",
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    res.status(500);
+    next(new Error("Cannot login at the moment"));
+  }
+};
+
+export { registerUser, loginUser };
