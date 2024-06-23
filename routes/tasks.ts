@@ -6,22 +6,23 @@ import {
   fetchTasks,
   updateTask,
 } from "../controllers/tasksController";
+import { authenticateToken } from "../middleware/authMiddleware";
 
 const router = Router();
 
 // Fetch Tasks
-router.get("/", fetchTasks);
+router.get("/", authenticateToken, fetchTasks);
 
 // Create a task
-router.post("/", createTask);
+router.post("/", authenticateToken, createTask);
 
 //create a task
-router.get("/:id", fetchTaskById);
+router.get("/:id", authenticateToken, fetchTaskById);
 
 // Delete a task
-router.delete("/:id", deleteTask);
+router.delete("/:id", authenticateToken, deleteTask);
 
 // Update a task
-router.patch("/:id", updateTask);
+router.patch("/:id", authenticateToken, updateTask);
 
 export default router;

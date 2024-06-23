@@ -2,7 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { myDataSource } from "../ormconfig";
 import { User } from "../models/user.entity";
 import { isEmailValid } from "../utils/utils";
+import { generateAccessToken } from "../middleware/authMiddleware";
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const saltRounds = bcrypt.genSaltSync(10);
 
@@ -140,6 +142,7 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        token: generateAccessToken(user.id + ""),
       },
     });
   } catch (error) {
